@@ -239,8 +239,7 @@ def write_jekyll(data, target_format):
             os.makedirs(target_dir)
 
         #if src not in attachments[dir]:
-        ##print target_name
-        return target_file
+        return target_file, os.path.normpath("/" + dir_prefix + '/' + dir + '/' + filename) 
 
     for i in data['items']:
         skip_item = False
@@ -294,9 +293,12 @@ def write_jekyll(data, target_format):
         if download_images:
             for img in i['img_srcs']:
                 try:
-                    urlretrieve(urljoin(data['header']['link'],
-                                        img.encode('utf-8')),
-                                get_attachment_path(img, i['uid']))
+                    local_path, local_url = get_attachment_path(img, i['uid'])
+                    old_url = urljoin(data['header']['link'], img.encode('utf-8'))
+                    urlretrieve(old_url, local_path)
+
+                    i['body'] = i['body'].replace(old_url, local_url)
+
                 except:
                     print "\n unable to download " + urljoin(data['header']['link'], img.encode('utf-8'))
 
