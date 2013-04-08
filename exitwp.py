@@ -26,6 +26,7 @@ config = yaml.load(file('config.yaml', 'r'))
 wp_exports = config['wp_exports']
 build_dir = config['build_dir']
 download_images = config['download_images']
+download_images_whitelist = config['download_images_whitelist']
 target_format = config['target_format']
 taxonomy_filter = set(config['taxonomies']['filter'])
 taxonomy_entry_filter = config['taxonomies']['entry_filter']
@@ -212,6 +213,16 @@ def write_jekyll(data, target_format):
         filename_parts.append(target_format)
         return ''.join(filename_parts)
 
+
+    def can_download(img):
+        if not download_images_whitelist:
+            return True
+        for server in download_images_whitelist:
+            if img.startswith(server):
+                return True
+        return False
+
+
     def get_attachment_path(src, dir, dir_prefix='images'):
         try:
             files = attachments[dir]
@@ -292,6 +303,9 @@ def write_jekyll(data, target_format):
 
         if download_images:
             for img in i['img_srcs']:
+                if not can_download(img):
+                    continue
+
                 try:
                     local_path, local_url = get_attachment_path(img, i['uid'])
                     old_url = urljoin(data['header']['link'], img.encode('utf-8'))
